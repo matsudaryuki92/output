@@ -24,35 +24,38 @@ class Contact extends Model
 
     public function category()
     {
-        return $this->belongsToMany(Category::class);
+        return $this->belongsTo(Category::class);
     }
 
-    public function scopeNameSearch($query, $searchword)
+    public function scopeNameSearch($query, $searchWord)
     {
-        if ($searchword) {
-            return $query->where(function ($query) use ($searchword) {
-                $query->orWhere('last_name', 'like', "%{$searchword}%")
-                ->orWhere('first_name', 'like', "%{$searchword}%")
-                ->orWhere('email', 'like', "%{$searchword}%");
+        if ($searchWord) {
+            return $query->where(function ($query) use ($searchWord) {
+                $query->orWhere('last_name', 'like', "%{$searchWord}%")
+                    ->orWhere('first_name', 'like', "%{$searchWord}%")
+                    ->orWhere('email', 'like', "%{$searchWord}%");
             });
         }
+
         return $query;
     }
 
-    //数値だと一意にデータをデータを見つけられるため部分検索が不要である
+    // 数値だと一意にデータをデータを見つけられるため部分検索が不要である
     public function scopeGenderSearch($query, $gender)
     {
         if ($gender) {
             return $query->where('gender', $gender);
         }
+
         return $query;
     }
 
     public function scopeCategorySearch($query, $category)
     {
         if ($category) {
-            return $query->where('category_id', $category);
+            return $query->where('category_id', (int) $category);
         }
+
         return $query;
     }
 
@@ -61,7 +64,7 @@ class Contact extends Model
         if ($date) {
             return $query->whereDate('created_at', $date);
         }
+
         return $query;
     }
-
 }

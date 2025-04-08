@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,36 +9,53 @@
 
 <body>
     <!-- 検索フォーム -->
-     検索機能
+    <h1>検索機能</h1>
     <div>
-        <form action="{{ route('contacts.search') }}" method="POST">
-            @csrf
-            <input type="text" name="keyword" placeholder="名前・メールアドレス">
+        <!-- これで動いている理由がロジックとして理解できない -->
+        <form action="{{ route('contacts.search') }}" method="GET">
+            <input type="text" name="keyword" value="{{ $searchWord ?? '' }}" placeholder="名前・メールアドレス">
+
             <select name="gender_key">
-                <option value="" disabled selected>性別</option>
-                <option value="1">男</option>
-                <option value="2">女</option>
-                <option value="3">その他</option>
+                <option value="" {{ empty($searchGender) ? 'selected' : '' }} disabled>性別</option>
+                <option value="1" {{ ($searchGender ?? '') == 1 ? 'selected' : '' }}>男</option>
+                <option value="2" {{ ($searchGender ?? '') == 2 ? 'selected' : '' }}>女</option>
+                <option value="3" {{ ($searchGender ?? '') == 3 ? 'selected' : '' }}>その他</option>
             </select>
+
             <select name="category_key">
-                <option value="" disabled selected>お問い合わせの種類</option>
-                <option value="1">商品のお届けについて</option>
-                <option value="2">商品の交換について</option>
-                <option value="3">商品トラブル</option>
-                <option value="4">ショップへのお問い合わせ</option>
-                <option value="5">その他</option>
+                <option value="" {{ empty($searchCategory) ? 'selected' : '' }} disabled>お問い合わせの種類</option>
+                <option value="1" {{ ($searchCategory ?? '') == 1 ? 'selected' : '' }}>商品のお届けについて</option>
+                <option value="2" {{ ($searchCategory ?? '') == 2 ? 'selected' : '' }}>商品の交換について</option>
+                <option value="3" {{ ($searchCategory ?? '') == 3 ? 'selected' : '' }}>商品トラブル</option>
+                <option value="4" {{ ($searchCategory ?? '') == 4 ? 'selected' : '' }}>ショップへのお問い合わせ</option>
+                <option value="5" {{ ($searchCategory ?? '') == 5 ? 'selected' : '' }}>その他</option>
             </select>
-                <input type="date" name="date_key">
+
+            <input type="date" name="date_key" value="{{ $searchDate ?? '' }}">
+
             <button type="submit">検索</button>
         </form>
     </div>
-        <div>
-            <form action="{{ route('contacts.index') }}" method="GET">
-                <button type="submit">リセット</button>
-            </form>
-        </div>
 
-    <!-- 連絡先のテーブル -->
+    <!-- リセット＆エクスポート -->
+    <div>
+        <form action="{{ route('contacts.index') }}" method="GET">
+            <button type="submit">リセット</button>
+        </form>
+    </div>
+    <div>
+        <form action="{{ route('contacts.csv') }}" method="GET">
+            <!-- ここでhiddenフィールドを使って、検索条件を保持 -->
+            <input type="hidden" name="keyword" value="{{ $searchWord ?? '' }}">
+            <input type="hidden" name="gender_key" value="{{ $searchGender ?? '' }}">
+            <input type="hidden" name="category_key" value="{{ $searchCategory ?? '' }}">
+            <input type="hidden" name="date_key" value="{{ $searchDate ?? '' }}">
+            <button type="submit">エクスポート</button>
+        </form>
+    </div>
+
+    <!-- 連絡先テーブル -->
+    @if(isset($contacts) && $contacts->count())
     <table>
         <thead>
             <tr>
@@ -46,6 +63,7 @@
                 <th>名前</th>
                 <th>性別</th>
                 <th>お問い合わせ内容</th>
+                <th>詳細</th>
             </tr>
         </thead>
         <tbody>
@@ -54,65 +72,49 @@
                     <td>{{ $contact->id }}</td>
                     <td>{{ $contact->last_name }} {{ $contact->first_name }}</td>
                     <td>
-                        @if($contact->gender === 1) 男
-                        @elseif($contact->gender === 2) 女
-                        @elseif($contact->gender === 3) その他
-                        @endif
+                        @switch($contact->gender)
+                            @case(1) 男 @break
+                            @case(2) 女 @break
+                            @case(3) その他 @break
+                            @default -
+                        @endswitch
                     </td>
                     <td>
-                        @if($contact->gender === 1) 商品のお届けについて
-                        @elseif($contact->gender === 2) 商品の交換について
-                        @elseif($contact->gender === 3) 商品トラブル
-                        @elseif($contact->gender === 4) ショップへのお問い合わせ
-                        @elseif($contact->gender === 5) その他
-                        @endif
+                        @switch($contact->category->id)
+                            @case(1) 商品のお届けについて @break
+                            @case(2) 商品の交換について @break
+                            @case(3) 商品トラブル @break
+                            @case(4) ショップへのお問い合わせ @break
+                            @case(5) その他 @break
+                            @default -
+                        @endswitch
                     </td>
                     <td>
-                        <button>
-                            <a href="{{ route('contacts.show', ['contact' =>$contact->id]) }}">詳細</a>
-                        </button>
+                        <div class="modal js-modal">
+                            <div class="modal-container">
+                                <!-- モーダルを閉じるボタン -->
+                                <div class="modal-close js-modal-close"></div>
+                                <!-- モーダル内部のコンテンツ -->
+                                <div class="modal-content">
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{{ route('contacts.show', ['contact' => $contact->id]) }}">
+                            <button>詳細</button>
+                        </a>
                     </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <!-- ページネーションリンク -->
+    <!-- ページネーション -->
     <div>
         {{ $contacts->links() }}
     </div>
+    @else
+        <p>データが見つかりませんでした。</p>
+    @endif
 
-    <!-- 検索結果の表示 -->
-    <div>
-        @if(!empty($values))
-            <h3>検索結果:</h3>
-            @foreach($values as $value)
-                <p>{{ $value->last_name }} {{ $value->first_name }}</p>
-
-                <p>{{ $value->email }}</p>
-
-                @if($value -> gender === 1)
-                <p>男</p>
-                @elseif($value -> gender === 2)
-                <p>女</p>
-                @elseif($value -> gender === 3)
-                <p>その他</p>
-                @endif
-
-                @if($value -> category_id === 1)
-                <p>商品のお届けについて</p>
-                @elseif($value -> category_id === 2)
-                <p>商品の交換について</p>
-                @elseif($value -> category_id === 3)
-                <p>商品トラブル</p>
-                @elseif($value -> category_id === 4)
-                <p>ショップへのお問い合わせ</p>
-                @elseif($value -> category_id === 5)
-                <p>その他</p>
-                @endif
-            @endforeach
-        @endif
-    </div>
 </body>
-
 </html>

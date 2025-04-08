@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +17,7 @@ use App\Http\Controllers\ContactController;
 Route::prefix('contacts')->group(function () {
     Route::get('/', [ContactController::class, 'index'])->name('contacts.index');
     Route::post('/', [ContactController::class, 'index'])->name('contacts.search');
-    Route::get('/{contact}', [ContactController::class, 'show'])->name('contacts.show');
-    Route::post('/{id}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+    Route::get('/show/{contact}', [ContactController::class, 'show'])->name('contacts.show');
+    Route::delete('/delete/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+    Route::get('/csv', [ContactController::class, 'csvExport'])->name('contacts.csv');
 });

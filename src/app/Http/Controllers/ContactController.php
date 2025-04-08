@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Contacts\UseCase\CsvExportUseCase;
+use App\Contacts\UseCase\SearchContactsUseCase;
 use App\Http\Requests\StoreContactRequest;
 use App\Http\Requests\UpdateContactRequest;
-use Illuminate\Http\Request;
 use App\Models\Contact;
-use App\Models\Category;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContactController extends Controller
 {
@@ -15,33 +17,20 @@ class ContactController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Request $request, SearchContactsUseCase $useCase)
     {
-        $searchWord = $request->input('keyword');
-        $searchGender = $request->input('gender_key');
-        $searchCategory = $request->input('category_key');
-        $searchDate = $request->input('date_key');
+        $contacts = $useCase->handle($request);
 
-        $contacts = Contact::query();
-
-        if($searchWord) {
-            $contacts->NameSearch($searchWord);
-        }
-
-        if($searchGender) {
-            $contacts->GenderSearch($searchGender);
-        }
-
-        if($searchCategory) {
-            $contacts->CategorySearch($searchCategory);
-        }
-
-        if($searchDate) {
-            $contacts->DateSearch($searchDate);
-        }
-        $contacts = $contacts->paginate(7);
-
-        return view('contacts.index', compact('contacts', 'searchWord', 'searchGender', 'searchCategory', 'searchDate'));
+        // useCaseに下記のコードを移動させたがうまく機能しなかっため一旦この形で。
+        return view('contacts.index', [
+            // フィルタリング後のデータを表示する為のデータを転送している
+            'contacts' => $contacts,
+            // ビューに渡して、フォームに再表示するため
+            'searchWord' => $request->input('keyword'),
+            'searchGender' => $request->input('gender_key'),
+            'searchCategory' => $request->input('category_key'),
+            'searchDate' => $request->input('date_key'),
+        ]);
     }
 
     /**
@@ -57,7 +46,6 @@ class ContactController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreContactRequest  $request
      * @return \Illuminate\Http\Response
      */
     public function store(StoreContactRequest $request)
@@ -68,20 +56,16 @@ class ContactController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Contact  $contact
      * @return \Illuminate\Http\Response
      */
     public function show(Contact $contact)
     {
-        //存在しないidの場合は自動的に404エラーになる
-
         return view('contacts.show', compact('contact'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Contact  $contact
      * @return \Illuminate\Http\Response
      */
     public function edit(Contact $contact)
@@ -92,8 +76,6 @@ class ContactController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateContactRequest  $request
-     * @param  \App\Models\Contact  $contact
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateContactRequest $request, Contact $contact)
@@ -104,13 +86,48 @@ class ContactController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Contact  $contact
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Contact $contact)
     {
-        $contact = Contact::findOrFail($id);
         $contact->delete();
+
         return redirect()->route('contacts.index');
+    }
+
+    public function csvExport(Request $request, CsvExportUseCase $useCase)
+    {
+        // CSVエクスポートの処理を実行
+        $contacts = $useCase->handle($request);
+
+        // ストリームレスポンスを作成
+        $response = new StreamedResponse(function () use ($contacts) {
+            $handle = fopen('php://output', 'w'); // 出力ストリームを開く
+
+            // ヘッダー行を書き込む
+            fputcsv($handle, ['First Name', 'Last Name', 'Gender', 'Email', 'Tel', 'Address', 'Building', 'Detail']);
+
+            // データを書き込む
+            foreach ($contacts as $contact) {
+                fputcsv($handle, [
+                    $contact->first_name,
+                    $contact->last_name,
+                    $contact->gender,
+                    $contact->email,
+                    $contact->tel,
+                    $contact->address,
+                    $contact->building,
+                    $contact->detail,
+                ]);
+            }
+
+            // fclose($handle);  ← Laravelではresponse()->stream()内でfclose()は不要
+        });
+
+        // HTTPヘッダーをセット
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="export.csv"');
+
+        return $response;
     }
 }
