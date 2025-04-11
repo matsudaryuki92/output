@@ -1,24 +1,24 @@
-//要素を取得
-const modal = document.querySelector('.js-modal'),
-      open = document.querySelector('.js-modal-open'),
-      close = document.querySelector('.js-modal-close');
+document.addEventListener('DOMContentLoaded', () => {
+    // 詳細ボタンを取得
+    const openButtons = document.querySelectorAll('.modal__open');
 
-//「開くボタン」をクリックしてモーダルを開く
-function modalOpen() {
-  modal.classList.add('is-active');
-}
-open.addEventListener('click', modalOpen);
+    openButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modalId = button.getAttribute('data-modal-id');
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+            }
+        });
+    });
 
-//「閉じるボタン」をクリックしてモーダルを閉じる
-function modalClose() {
-  modal.classList.remove('is-active');
-}
-close.addEventListener('click', modalClose);
+    // 閉じるボタン・背景クリックで閉じる
+    const closeElements = document.querySelectorAll('.modal__close');
 
-//「モーダルの外側」をクリックしてモーダルを閉じる
-function modalOut(e) {
-  if (e.target == modal) {
-    modal.classList.remove('is-active');
-  }
-}
-addEventListener('click', modalOut);
+    closeElements.forEach(close => {
+        close.addEventListener('click', () => {
+            const modal = close.closest('.modal');
+            modal.classList.remove('active');
+        });
+    });
+});

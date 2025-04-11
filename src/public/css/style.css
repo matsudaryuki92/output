@@ -1,0 +1,90 @@
+body {
+    font-family: Inika, sans-serif;
+    color: #8B7969;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    text-align: center;
+    border-bottom: 1px solid #8B7969;
+    width: auto;
+    height: 75px;
+}
+
+.subheader {
+    text-align: center;
+    width: auto;
+    height: 50px;
+}
+
+.header h2 {
+    font-size: 40px;
+    margin-top: 20px;
+}
+
+.subheader h2 {
+    font-size: 40px;
+    margin-top: 20px;
+}
+
+.header-export__pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+}
+
+.pagination {
+    display: flex;
+    justify-content: right;
+    align-items: right;
+    margin-top: 20px;
+}
+
+.search-form {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.search-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 60px;
+    justify-content: center;
+}
+
+.contacts-table {
+    width: 80%;
+    border-collapse: collapse;
+    margin: auto;
+    align-items: center;
+}
+
+.contacts-table th,
+.contacts-table td {
+    padding: 15px 20px;
+}
+
+.contacts-table__header {
+    align-items: center;
+    text-align: center;
+}
+
+.contacts-table__body {
+    align-items: center;
+    text-align: center;
+}
+
+.contacts-table__body-row {
+    border: solid #8B7969;
+}
+
+.contacts-table__header-row {
+    background-color: #8B7969;
+    color: #fff;
+}
+

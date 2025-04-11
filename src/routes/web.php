@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\IndexController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,3 +22,9 @@ Route::prefix('contacts')->group(function () {
     Route::delete('/delete/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
     Route::get('/csv', [ContactController::class, 'csvExport'])->name('contacts.csv');
 });
+
+Route::get('/', [IndexController::class, 'index'])->name('index.index');
+Route::post('/', [IndexController::class, 'check'])->name('index.check');
+
+Route::get('/confirm', [IndexController::class, 'confirm'])->name('index.confirm');
+// Route::post('/', [IndexController::class, 'check'])->name('index.check');

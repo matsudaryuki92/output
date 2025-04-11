@@ -1,0 +1,34 @@
+.modal {
+    display: none;
+    /* 初期状態は非表示 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    /* 背景を半透明に */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* キーマンとして活躍している */
+.modal.active {
+    display: block;
+}
+
+.modal__content {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 500px;
+    margin: auto;
+    position: relative;
+    z-index: 1001;
+}
+
+.modal__close {
+    cursor: pointer;
+}
+
